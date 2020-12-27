@@ -6,6 +6,7 @@ import (
 	"os"
 
 	_ "github.com/mattn/go-sqlite3" // Used in sql.open()
+	"golang.org/x/crypto/bcrypt"
 )
 
 const dbfile = "./wishlist.db"
@@ -19,7 +20,8 @@ func checkDB() error {
 		defer db.Close()
 
 		sqlStmt := `
-		create table items (name text, price int);
+		CREATE TABLE items (name text, price int);
+		CREATE TABLE users (username text, password text);
 		`
 		_, err = db.Exec(sqlStmt)
 		if err != nil {
@@ -44,9 +46,7 @@ func FetchItems() ([]WishlistItem, error) {
 	}
 	defer db.Close()
 
-	sqlStmt := `
-	select name, price from items;
-	`
+	sqlStmt := "select name, price from items;"
 	rows, err := db.Query(sqlStmt)
 	if err != nil {
 		return itemList, fmt.Errorf("Unable to query %v", err)
@@ -71,4 +71,61 @@ func FetchItems() ([]WishlistItem, error) {
 	}
 
 	return itemList, nil
+}
+
+// AddItem creates a new item in the wishlist
+func AddItem(item WishlistItem) error {
+	err := checkDB()
+	if err != nil {
+		return err
+	}
+
+	db, err := sql.Open("sqlite3", dbfile)
+	if err != nil {
+		return fmt.Errorf("Unable to open %v", err)
+	}
+	defer db.Close()
+
+	stmt, err := db.Prepare("INSERT INTO items (name, price) VALUES (?, ?);")
+	if err != nil {
+		return fmt.Errorf("Unable to create record %v", err)
+	}
+	_, err = stmt.Exec(item.Name, item.Price)
+	if err != nil {
+		return fmt.Errorf("Unable to create record %v", err)
+	}
+	return nil
+}
+
+// FetchUser returns a user if the username and password match with a record
+func FetchUser(usr, pwd string) (User, error) {
+	var user User
+	err := checkDB()
+	if err != nil {
+		return user, err
+	}
+
+	db, err := sql.Open("sqlite3", dbfile)
+	if err != nil {
+		return user, fmt.Errorf("Unable to open %v", err)
+	}
+	defer db.Close()
+
+	stmt, err := db.Prepare("SELECT username, password from users WHERE username=? LIMIT 1;")
+	if err != nil {
+		return user, fmt.Errorf("Unable to query %v", err)
+	}
+
+	var name string
+	var pass string
+	err = stmt.QueryRow(usr).Scan(&name, &pass)
+	if err != nil {
+		return user, fmt.Errorf("No user found that matches the username or password")
+	}
+	if err = bcrypt.CompareHashAndPassword([]byte(pass), []byte(pwd)); err != nil {
+		return user, fmt.Errorf("No user found that matches the password")
+	}
+	return User{
+		Username: name,
+	}, nil
 }

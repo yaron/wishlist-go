@@ -12,6 +12,9 @@
 # Test databases
 wishlist.db
 
+# HMAC file
+hmac
+
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
