@@ -27,6 +27,17 @@ func checkDB() error {
 		if err != nil {
 			return fmt.Errorf("Unable to create table %v", err)
 		}
+
+		if os.Getenv("WISH_DEBUG") == "1" {
+			// test2 - test
+			sqlStmt = `
+			insert into users (username, password) values ("test2", "$2a$10$iudIPXKg0GlCS7O2K9cMHuD1oot16f8VCrCTMlf.iR7sewzEQdz/.");
+			`
+			_, err = db.Exec(sqlStmt)
+			if err != nil {
+				return fmt.Errorf("Unable to create test data %v", err)
+			}
+		}
 	}
 
 	return nil
