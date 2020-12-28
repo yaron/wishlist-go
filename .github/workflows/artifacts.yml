@@ -1,0 +1,14 @@
+  upload_artifacts:
+    name: Upload Artifacts
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+    - name: Build
+      run: go build -v -o wishlist main.go
+    - name: github-action-publish-binaries
+      uses: skx/github-action-publish-binaries@release-0.14
+      with:
+        args: 'wishlist'
+        releaseId: ${{ needs.release.outputs.id }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
