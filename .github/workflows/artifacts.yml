@@ -1,3 +1,6 @@
+name: Upload artifacts
+
+jobs:
   upload_artifacts:
     name: Upload Artifacts
     needs: release
