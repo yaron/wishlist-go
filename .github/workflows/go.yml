@@ -31,3 +31,5 @@ jobs:
       uses: skx/github-action-publish-binaries@release-0.14
       with:
         args: 'wishlist'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
