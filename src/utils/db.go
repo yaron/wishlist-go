@@ -6,18 +6,21 @@ import (
 	"encoding/base64"
 	"fmt"
 	"os"
+	"path"
 
 	_ "github.com/mattn/go-sqlite3" // Used in sql.open()
 	"golang.org/x/crypto/bcrypt"
 )
 
-const dbfile = "./wishlist.db"
+func dbFile() string {
+	return path.Join(os.Getenv("WISH_DEBUG"), "wishlist.db")
+}
 
-func checkDB() error {
-	if _, err := os.Stat(dbfile); os.IsNotExist(err) {
-		db, err := sql.Open("sqlite3", dbfile)
+func openDB() (*sql.DB, error) {
+	if _, err := os.Stat(dbFile()); os.IsNotExist(err) {
+		db, err := sql.Open("sqlite3", dbFile())
 		if err != nil {
-			return fmt.Errorf("Unable to open %v", err)
+			return nil, fmt.Errorf("Unable to open %v", err)
 		}
 		defer db.Close()
 
@@ -35,7 +38,7 @@ func checkDB() error {
 		`
 		_, err = db.Exec(sqlStmt)
 		if err != nil {
-			return fmt.Errorf("Unable to create table %v", err)
+			return nil, fmt.Errorf("Unable to create table %v", err)
 		}
 
 		if os.Getenv("WISH_DEBUG") == "1" {
@@ -45,25 +48,25 @@ func checkDB() error {
 			`
 			_, err = db.Exec(sqlStmt)
 			if err != nil {
-				return fmt.Errorf("Unable to create test data %v", err)
+				return nil, fmt.Errorf("Unable to create test data %v", err)
 			}
 		}
 	}
 
-	return nil
+	db, err := sql.Open("sqlite3", dbFile())
+	if err != nil {
+		return nil, fmt.Errorf("Unable to open %v", err)
+	}
+
+	return db, nil
 }
 
 // FetchItem returns a single wishlist item
 func FetchItem(itemID int) (WishlistItem, error) {
 	var item WishlistItem
-	err := checkDB()
+	db, err := openDB()
 	if err != nil {
 		return item, err
-	}
-
-	db, err := sql.Open("sqlite3", dbfile)
-	if err != nil {
-		return item, fmt.Errorf("Unable to open %v", err)
 	}
 	defer db.Close()
 
@@ -98,14 +101,9 @@ func FetchItem(itemID int) (WishlistItem, error) {
 // FetchItems returns a list of all items in the wishlist
 func FetchItems() ([]WishlistItem, error) {
 	var itemList []WishlistItem
-	err := checkDB()
+	db, err := openDB()
 	if err != nil {
 		return itemList, err
-	}
-
-	db, err := sql.Open("sqlite3", dbfile)
-	if err != nil {
-		return itemList, fmt.Errorf("Unable to open %v", err)
 	}
 	defer db.Close()
 
@@ -148,14 +146,9 @@ func FetchItems() ([]WishlistItem, error) {
 
 // AddItem creates a new item in the wishlist
 func AddItem(item WishlistItem) error {
-	err := checkDB()
+	db, err := openDB()
 	if err != nil {
 		return err
-	}
-
-	db, err := sql.Open("sqlite3", dbfile)
-	if err != nil {
-		return fmt.Errorf("Unable to open %v", err)
 	}
 	defer db.Close()
 
@@ -178,14 +171,9 @@ func ClaimKey(id int) (string, error) {
 		return "", err
 	}
 	key := base64.URLEncoding.EncodeToString(randomBytes)
-	err = checkDB()
+	db, err := openDB()
 	if err != nil {
 		return "", err
-	}
-
-	db, err := sql.Open("sqlite3", dbfile)
-	if err != nil {
-		return "", fmt.Errorf("Unable to open %v", err)
 	}
 	defer db.Close()
 
@@ -202,14 +190,9 @@ func ClaimKey(id int) (string, error) {
 
 // EditItem updates an existing item in the wishlist
 func EditItem(id int, item WishlistItem) error {
-	err := checkDB()
+	db, err := openDB()
 	if err != nil {
 		return err
-	}
-
-	db, err := sql.Open("sqlite3", dbfile)
-	if err != nil {
-		return fmt.Errorf("Unable to open %v", err)
 	}
 	defer db.Close()
 
@@ -227,14 +210,9 @@ func EditItem(id int, item WishlistItem) error {
 // FetchUser returns a user if the username and password match with a record
 func FetchUser(usr, pwd string) (User, error) {
 	var user User
-	err := checkDB()
+	db, err := openDB()
 	if err != nil {
 		return user, err
-	}
-
-	db, err := sql.Open("sqlite3", dbfile)
-	if err != nil {
-		return user, fmt.Errorf("Unable to open %v", err)
 	}
 	defer db.Close()
 
@@ -259,14 +237,9 @@ func FetchUser(usr, pwd string) (User, error) {
 
 // ClaimItem updates an existing item in the wishlist to be claimed
 func ClaimItem(claim Claim) error {
-	err := checkDB()
+	db, err := openDB()
 	if err != nil {
 		return err
-	}
-
-	db, err := sql.Open("sqlite3", dbfile)
-	if err != nil {
-		return fmt.Errorf("Unable to open %v", err)
 	}
 	defer db.Close()
 
@@ -283,14 +256,9 @@ func ClaimItem(claim Claim) error {
 
 // UnclaimItem updates an existing item in the wishlist to be claimed
 func UnclaimItem(claim Unclaim) error {
-	err := checkDB()
+	db, err := openDB()
 	if err != nil {
 		return err
-	}
-
-	db, err := sql.Open("sqlite3", dbfile)
-	if err != nil {
-		return fmt.Errorf("Unable to open %v", err)
 	}
 	defer db.Close()
 
