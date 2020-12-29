@@ -8,7 +8,7 @@ on:
 jobs:
   upload_artifacts:
     name: Upload Artifacts
-    needs: release
+    needs: create_release
     runs-on: ubuntu-latest
     steps:
     - name: Build
@@ -17,6 +17,6 @@ jobs:
       uses: skx/github-action-publish-binaries@release-0.14
       with:
         args: 'wishlist'
-        releaseId: ${{ needs.release.outputs.id }}
+        releaseId: ${{ needs.create_release.outputs.id }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
