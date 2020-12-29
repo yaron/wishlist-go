@@ -12,3 +12,7 @@ To run in production just get the binary from the last release and run it. You c
 | WISH_URL | The domain to use in the 'unclaim' mail. Do not unclude https:// (eg. example.com). "/unclaim/[secret-key]" will be appended, you need to make sure something exists there. |
 | WISH_NAME | The name of the site, to be used in the 'unclaim' mail.| 
 
+## TODO
+ - Document API
+ - Make mail text and subject overwritable
+ - Build frontend
