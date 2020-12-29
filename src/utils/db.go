@@ -50,6 +50,48 @@ func checkDB() error {
 	return nil
 }
 
+// FetchItem returns a single wishlist item
+func FetchItem(itemID int) (WishlistItem, error) {
+	var item WishlistItem
+	err := checkDB()
+	if err != nil {
+		return item, err
+	}
+
+	db, err := sql.Open("sqlite3", dbfile)
+	if err != nil {
+		return item, fmt.Errorf("Unable to open %v", err)
+	}
+	defer db.Close()
+
+	stmt, err := db.Prepare("SELECT rowid, name, price, claimable, claimed, url, image from items WHERE rowid=? LIMIT 1;")
+	if err != nil {
+		return item, fmt.Errorf("Unable to query %v", err)
+	}
+
+	var id int
+	var name string
+	var price int
+	var claimable int
+	var claimed int
+	var url string
+	var image string
+	err = stmt.QueryRow(itemID).Scan(&id, &name, &price, &claimable, &claimed, &url, &image)
+	if err != nil {
+		return item, fmt.Errorf("No item found that matches the id")
+	}
+
+	return WishlistItem{
+		ID:        id,
+		Name:      name,
+		Price:     price,
+		Claimed:   claimed == 1,
+		Claimable: claimable == 1,
+		URL:       url,
+		Image:     image,
+	}, nil
+}
+
 // FetchItems returns a list of all items in the wishlist
 func FetchItems() ([]WishlistItem, error) {
 	var itemList []WishlistItem
