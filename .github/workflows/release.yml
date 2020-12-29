@@ -25,3 +25,17 @@ jobs:
             Automated release
           draft: false
           prerelease: false
+  upload_artifacts:
+    name: Upload Artifacts
+    needs: create_release
+    runs-on: ubuntu-latest
+    steps:
+    - name: Build
+      run: go build -v -o wishlist main.go
+    - name: github-action-publish-binaries
+      uses: skx/github-action-publish-binaries@release-0.14
+      with:
+        args: 'wishlist'
+        releaseId: ${{ needs.create_release.outputs.id }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
