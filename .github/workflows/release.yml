@@ -10,6 +10,8 @@ jobs:
   create_release:
     name: Create Release
     runs-on: ubuntu-latest
+    outputs:
+      id: ${{steps.create_release.id}}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
