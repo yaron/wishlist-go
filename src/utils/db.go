@@ -20,7 +20,7 @@ func checkDB() error {
 		defer db.Close()
 
 		sqlStmt := `
-		CREATE TABLE items (name text, price int);
+		CREATE TABLE items (name text, price int, claimed int DEFAULT 0, claimable int DEFAULT 1);
 		CREATE TABLE users (username text, password text);
 		`
 		_, err = db.Exec(sqlStmt)
@@ -57,22 +57,28 @@ func FetchItems() ([]WishlistItem, error) {
 	}
 	defer db.Close()
 
-	sqlStmt := "select name, price from items;"
+	sqlStmt := "select rowid, name, price, claimable, claimed from items;"
 	rows, err := db.Query(sqlStmt)
 	if err != nil {
 		return itemList, fmt.Errorf("Unable to query %v", err)
 	}
 	defer rows.Close()
 	for rows.Next() {
+		var id int
 		var name string
 		var price int
-		err = rows.Scan(&name, &price)
+		var claimable int
+		var claimed int
+		err = rows.Scan(&id, &name, &price, &claimable, &claimed)
 		if err != nil {
 			return itemList, fmt.Errorf("Unable to scan record %v", err)
 		}
 		itemList = append(itemList, WishlistItem{
-			Name:  name,
-			Price: price,
+			ID:        id,
+			Name:      name,
+			Price:     price,
+			Claimed:   claimed == 1,
+			Claimable: claimable == 1,
 		})
 	}
 
@@ -104,6 +110,30 @@ func AddItem(item WishlistItem) error {
 	_, err = stmt.Exec(item.Name, item.Price)
 	if err != nil {
 		return fmt.Errorf("Unable to create record %v", err)
+	}
+	return nil
+}
+
+// EditItem updates an existing item in the wishlist
+func EditItem(id int, item WishlistItem) error {
+	err := checkDB()
+	if err != nil {
+		return err
+	}
+
+	db, err := sql.Open("sqlite3", dbfile)
+	if err != nil {
+		return fmt.Errorf("Unable to open %v", err)
+	}
+	defer db.Close()
+
+	stmt, err := db.Prepare("UPDATE items SET name=?, price=? WHERE rowid=?;")
+	if err != nil {
+		return fmt.Errorf("Unable to update record %v", err)
+	}
+	_, err = stmt.Exec(item.Name, item.Price, id)
+	if err != nil {
+		return fmt.Errorf("Unable to update record %v", err)
 	}
 	return nil
 }

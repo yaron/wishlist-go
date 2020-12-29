@@ -2,8 +2,11 @@ package utils
 
 // WishlistItem is a struct that represents an item on a wishlist
 type WishlistItem struct {
-	Name  string `json:"name" binding:"required"`
-	Price int    `json:"price"`
+	ID        int    `json:"id"`
+	Name      string `json:"name" binding:"required"`
+	Price     int    `json:"price"`
+	Claimed   bool   `json:"claimed"`
+	Claimable bool   `json:"claimable"`
 }
 
 // User contains all the properties of a user

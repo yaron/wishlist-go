@@ -1,7 +1,6 @@
 package pages
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/gin-gonic/gin"
@@ -19,11 +18,5 @@ func List(c *gin.Context) {
 		return
 	}
 
-	var itemList []string
-
-	for _, item := range items {
-		itemList = append(itemList, fmt.Sprintf("Name: %s, price: %.2f", item.Name, float64(item.Price)/100))
-	}
-
-	c.JSON(200, itemList)
+	c.JSON(200, items)
 }

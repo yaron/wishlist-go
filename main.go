@@ -16,6 +16,7 @@ func main() {
 	r.POST("/login", pages.Login)
 	authorized := r.Group("/admin", jWTAuth)
 	authorized.POST("/add", pages.Add)
+	authorized.POST("/edit/:id", pages.Edit)
 	r.Run()
 }
 
