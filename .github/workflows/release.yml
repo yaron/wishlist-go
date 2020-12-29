@@ -36,10 +36,13 @@ jobs:
       uses: actions/checkout@v2
     - name: Build
       run: go build -v -o wishlist main.go
-    - name: github-action-publish-binaries
-      uses: skx/github-action-publish-binaries@release-0.14
-      with:
-        args: 'wishlist'
-        releaseId: ${{ needs.create_release.outputs.id }}
+    - name: Upload Release Asset
+      id: upload-release-asset 
+      uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+        asset_path: ./wishlist
+        asset_name: wishlist
+        asset_content_type: application/octet-stream
