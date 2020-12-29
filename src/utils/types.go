@@ -21,3 +21,9 @@ type Login struct {
 	User     string `json:"user" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
+
+// Claim contains all the information needed to claim an item
+type Claim struct {
+	ID   int    `json:"id" binding:"required"`
+	Mail string `json:"mail"`
+}

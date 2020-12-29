@@ -25,8 +25,8 @@ func checkDB() error {
 			price int, 
 			claimed int DEFAULT 0, 
 			claimable int DEFAULT 1,
-			url string,
-			image string
+			url string DEFAULT "",
+			image string DEFAULT ""
 		);
 		CREATE TABLE users (username text, password text);
 		`
@@ -64,7 +64,7 @@ func FetchItems() ([]WishlistItem, error) {
 	}
 	defer db.Close()
 
-	sqlStmt := "select rowid, name, price, claimable, claimed from items;"
+	sqlStmt := "select rowid, name, price, claimable, claimed, url, image from items;"
 	rows, err := db.Query(sqlStmt)
 	if err != nil {
 		return itemList, fmt.Errorf("Unable to query %v", err)
@@ -180,4 +180,28 @@ func FetchUser(usr, pwd string) (User, error) {
 	return User{
 		Username: name,
 	}, nil
+}
+
+// ClaimItem updates an existing item in the wishlist to be claimed
+func ClaimItem(claim Claim) error {
+	err := checkDB()
+	if err != nil {
+		return err
+	}
+
+	db, err := sql.Open("sqlite3", dbfile)
+	if err != nil {
+		return fmt.Errorf("Unable to open %v", err)
+	}
+	defer db.Close()
+
+	stmt, err := db.Prepare("UPDATE items SET claimed=true WHERE rowid=? and claimable=1;")
+	if err != nil {
+		return fmt.Errorf("Unable to update record %v", err)
+	}
+	_, err = stmt.Exec(claim.ID)
+	if err != nil {
+		return fmt.Errorf("Unable to update record %v", err)
+	}
+	return nil
 }
