@@ -36,13 +36,19 @@ func Claim(c *gin.Context) {
 		return
 	}
 
+	claimKey, err := utils.ClaimKey(json.ID)
+	if err != nil {
+		c.JSON(200, gin.H{"status": "Item claimed", "error": fmt.Sprintf("Unable to create claimkey %s", err.Error())})
+		return
+	}
+
 	mg := mailgun.NewMailgun(domain, key)
 	from := fmt.Sprintf("%s <mail@%s>", siteName, url)
 	subject := fmt.Sprintf("Cadeau afgestreept %s", siteName)
 	body := fmt.Sprintf(`Hallo,
 	Je hebt op %s %s afgestreept. Hierbij de link om dit
 	ongedaan te maken mocht het toch niet zijn gelukt:
-	https://%s/unclaim`, siteName, item.Name, siteName)
+	https://%s/unclaim/%s`, siteName, item.Name, siteName, claimKey)
 	message := mg.NewMessage(from, subject, body, json.Mail)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
@@ -56,4 +62,20 @@ func Claim(c *gin.Context) {
 	}
 
 	c.JSON(200, gin.H{"status": "Item claimed"})
+}
+
+// Unclaim marks an item as unclaimed
+func Unclaim(c *gin.Context) {
+	var json utils.Unclaim
+	if err := c.ShouldBindJSON(&json); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	err := utils.UnclaimItem(json)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(200, gin.H{"status": "Item unclaimed"})
 }

@@ -1,7 +1,9 @@
 package utils
 
 import (
+	"crypto/rand"
 	"database/sql"
+	"encoding/base64"
 	"fmt"
 	"os"
 
@@ -29,6 +31,7 @@ func checkDB() error {
 			image string DEFAULT ""
 		);
 		CREATE TABLE users (username text, password text);
+		CREATE TABLE claims (key text, itemID int);
 		`
 		_, err = db.Exec(sqlStmt)
 		if err != nil {
@@ -167,6 +170,36 @@ func AddItem(item WishlistItem) error {
 	return nil
 }
 
+// ClaimKey generates a random key to unclaim a wishlist item and adds it to the table
+func ClaimKey(id int) (string, error) {
+	randomBytes := make([]byte, 16)
+	_, err := rand.Read(randomBytes)
+	if err != nil {
+		return "", err
+	}
+	key := base64.URLEncoding.EncodeToString(randomBytes)
+	err = checkDB()
+	if err != nil {
+		return "", err
+	}
+
+	db, err := sql.Open("sqlite3", dbfile)
+	if err != nil {
+		return "", fmt.Errorf("Unable to open %v", err)
+	}
+	defer db.Close()
+
+	stmt, err := db.Prepare("INSERT INTO claims (key, itemID) VALUES (?, ?);")
+	if err != nil {
+		return "", fmt.Errorf("Unable to create record %v", err)
+	}
+	_, err = stmt.Exec(key, id)
+	if err != nil {
+		return "", fmt.Errorf("Unable to create record %v", err)
+	}
+	return key, nil
+}
+
 // EditItem updates an existing item in the wishlist
 func EditItem(id int, item WishlistItem) error {
 	err := checkDB()
@@ -245,5 +278,50 @@ func ClaimItem(claim Claim) error {
 	if err != nil {
 		return fmt.Errorf("Unable to update record %v", err)
 	}
+	return nil
+}
+
+// UnclaimItem updates an existing item in the wishlist to be claimed
+func UnclaimItem(claim Unclaim) error {
+	err := checkDB()
+	if err != nil {
+		return err
+	}
+
+	db, err := sql.Open("sqlite3", dbfile)
+	if err != nil {
+		return fmt.Errorf("Unable to open %v", err)
+	}
+	defer db.Close()
+
+	stmt, err := db.Prepare("SELECT itemID from claims WHERE key=? AND itemID=? LIMIT 1;")
+	if err != nil {
+		return fmt.Errorf("Unable to query %v", err)
+	}
+
+	var itemID string
+	err = stmt.QueryRow(claim.Key, claim.ID).Scan(&itemID)
+	if err != nil {
+		return fmt.Errorf("No claim found that matches the id and key")
+	}
+
+	stmt, err = db.Prepare("UPDATE items SET claimed=false WHERE rowid=? and claimable=1;")
+	if err != nil {
+		return fmt.Errorf("Unable to update item %v", err)
+	}
+	_, err = stmt.Exec(claim.ID)
+	if err != nil {
+		return fmt.Errorf("Unable to update item %v", err)
+	}
+
+	stmt, err = db.Prepare("DELETE from claims WHERE key=? AND itemID=? LIMIT 1;")
+	if err != nil {
+		return fmt.Errorf("Unable to delete claim %v", err)
+	}
+	_, err = stmt.Exec(claim.Key, claim.ID)
+	if err != nil {
+		return fmt.Errorf("Unable to delete claim %v", err)
+	}
+
 	return nil
 }

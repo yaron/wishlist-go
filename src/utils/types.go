@@ -27,3 +27,9 @@ type Claim struct {
 	ID   int    `json:"id" binding:"required"`
 	Mail string `json:"mail"`
 }
+
+// Unclaim contains all the information needed to unclaim an item
+type Unclaim struct {
+	ID  int    `json:"id" binding:"required"`
+	Key string `json:"key"`
+}

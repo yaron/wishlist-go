@@ -14,6 +14,7 @@ func main() {
 	r := gin.Default()
 	r.GET("/list", pages.List)
 	r.POST("/claim", pages.Claim)
+	r.POST("/unclaim", pages.Unclaim)
 	r.POST("/login", pages.Login)
 	authorized := r.Group("/admin", jWTAuth)
 	authorized.POST("/add", pages.Add)
