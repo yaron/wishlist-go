@@ -7,6 +7,8 @@ type WishlistItem struct {
 	Price     int    `json:"price"`
 	Claimed   bool   `json:"claimed"`
 	Claimable bool   `json:"claimable"`
+	URL       string `json:"url"`
+	Image     string `json:"image"`
 }
 
 // User contains all the properties of a user

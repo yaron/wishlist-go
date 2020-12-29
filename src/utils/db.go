@@ -20,7 +20,14 @@ func checkDB() error {
 		defer db.Close()
 
 		sqlStmt := `
-		CREATE TABLE items (name text, price int, claimed int DEFAULT 0, claimable int DEFAULT 1);
+		CREATE TABLE items (
+			name text, 
+			price int, 
+			claimed int DEFAULT 0, 
+			claimable int DEFAULT 1,
+			url string,
+			image string
+		);
 		CREATE TABLE users (username text, password text);
 		`
 		_, err = db.Exec(sqlStmt)
@@ -69,7 +76,9 @@ func FetchItems() ([]WishlistItem, error) {
 		var price int
 		var claimable int
 		var claimed int
-		err = rows.Scan(&id, &name, &price, &claimable, &claimed)
+		var url string
+		var image string
+		err = rows.Scan(&id, &name, &price, &claimable, &claimed, &url, &image)
 		if err != nil {
 			return itemList, fmt.Errorf("Unable to scan record %v", err)
 		}
@@ -79,6 +88,8 @@ func FetchItems() ([]WishlistItem, error) {
 			Price:     price,
 			Claimed:   claimed == 1,
 			Claimable: claimable == 1,
+			URL:       url,
+			Image:     image,
 		})
 	}
 
