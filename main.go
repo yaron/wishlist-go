@@ -25,12 +25,12 @@ func main() {
 func jWTAuth(c *gin.Context) {
 	header := c.Request.Header.Get("Authorization")
 	token := strings.Replace(header, "Bearer ", "", 1)
-	username, err := utils.TestToken(token)
+	userID, err := utils.TestToken(token)
 	if err != nil {
 		log.Println("Warning: " + err.Error())
 		c.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
-	c.Set(gin.AuthUserKey, username)
+	c.Set(gin.AuthUserKey, userID)
 
 }

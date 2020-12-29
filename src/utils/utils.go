@@ -9,16 +9,19 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 
 	"github.com/dgrijalva/jwt-go"
 )
 
-const hmacFile = "./hmac"
+func hmacFile() string {
+	return path.Join(os.Getenv("WISH_PATH"), "hmac")
+}
 
 // GetHmac gets the Hmac from file or generates a new one and writes it to file
 func GetHmac() ([]byte, error) {
 	var r []byte
-	if _, err := os.Stat(hmacFile); os.IsNotExist(err) {
+	if _, err := os.Stat(hmacFile()); os.IsNotExist(err) {
 		randomBytes := make([]byte, 16)
 		_, err := rand.Read(randomBytes)
 		if err != nil {
@@ -34,20 +37,20 @@ func GetHmac() ([]byte, error) {
 		h := hmac.New(sha256.New, []byte(secret))
 		h.Write([]byte(data))
 		sha := []byte(hex.EncodeToString(h.Sum(nil)))
-		err = ioutil.WriteFile(hmacFile, sha, 0600)
+		err = ioutil.WriteFile(hmacFile(), sha, 0600)
 		if err != nil {
 			return r, err
 		}
 		return sha, nil
 	}
-	data, err := ioutil.ReadFile(hmacFile)
+	data, err := ioutil.ReadFile(hmacFile())
 	if err != nil {
 		return r, err
 	}
 	return data, nil
 }
 
-// TestToken can be used to test if a token is valid and get the username from it
+// TestToken can be used to test if a token is valid and get the userID from it
 func TestToken(t string) (string, error) {
 	token, err := jwt.Parse(t, func(token *jwt.Token) (interface{}, error) {
 		// Don't forget to validate the alg is what you expect:
@@ -66,7 +69,7 @@ func TestToken(t string) (string, error) {
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		return claims["username"].(string), nil
+		return claims["userID"].(string), nil
 	}
 
 	return "", fmt.Errorf("Unable to parse JWT")

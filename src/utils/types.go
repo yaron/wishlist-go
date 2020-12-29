@@ -13,6 +13,7 @@ type WishlistItem struct {
 
 // User contains all the properties of a user
 type User struct {
+	ID       int
 	Username string
 }
 

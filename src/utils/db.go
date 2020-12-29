@@ -13,7 +13,7 @@ import (
 )
 
 func dbFile() string {
-	return path.Join(os.Getenv("WISH_DEBUG"), "wishlist.db")
+	return path.Join(os.Getenv("WISH_PATH"), "wishlist.db")
 }
 
 func openDB() (*sql.DB, error) {
@@ -216,14 +216,15 @@ func FetchUser(usr, pwd string) (User, error) {
 	}
 	defer db.Close()
 
-	stmt, err := db.Prepare("SELECT username, password from users WHERE username=? LIMIT 1;")
+	stmt, err := db.Prepare("SELECT rowid, username, password from users WHERE username=? LIMIT 1;")
 	if err != nil {
 		return user, fmt.Errorf("Unable to query %v", err)
 	}
 
+	var userID int
 	var name string
 	var pass string
-	err = stmt.QueryRow(usr).Scan(&name, &pass)
+	err = stmt.QueryRow(usr).Scan(&userID, &name, &pass)
 	if err != nil {
 		return user, fmt.Errorf("No user found that matches the username or password")
 	}
@@ -231,6 +232,7 @@ func FetchUser(usr, pwd string) (User, error) {
 		return user, fmt.Errorf("No user found that matches the password")
 	}
 	return User{
+		ID:       userID,
 		Username: name,
 	}, nil
 }
