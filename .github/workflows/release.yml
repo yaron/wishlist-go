@@ -10,8 +10,6 @@ jobs:
   create_release:
     name: Create Release
     runs-on: ubuntu-latest
-    outputs:
-      id: ${{steps.create_release.id}}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -27,22 +25,17 @@ jobs:
             Automated release
           draft: false
           prerelease: false
-  upload_artifacts:
-    name: Upload Artifacts
-    needs: create_release
-    runs-on: ubuntu-latest
-    steps:
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v2
-    - name: Build
-      run: go build -v -o wishlist main.go
-    - name: Upload Release Asset
-      id: upload-release-asset 
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-        asset_path: ./wishlist
-        asset_name: wishlist
-        asset_content_type: application/octet-stream
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+      - name: Build
+        run: go build -v -o wishlist main.go
+      - name: Upload Release Asset
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          asset_path: ./wishlist
+          asset_name: wishlist
+          asset_content_type: application/octet-stream[;]
