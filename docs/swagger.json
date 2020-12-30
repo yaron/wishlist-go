@@ -1,0 +1,153 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "Wishlist backend API",
+    "version": "1.0.0",
+    "title": "Wishlist in GO",
+    "contact": {
+      "email": "yaron@ytal.nl"
+    }
+  },
+  "host": "localhost:8080",
+  "basePath": "/",
+  "tags": [
+    {
+      "name": "Items",
+      "description": "Listing, claiming and unclaiming items"
+    },
+    {
+      "name": "Authorisation",
+      "description": "Login"
+    },
+    {
+      "name": "Privileged",
+      "description": "Admin operations"
+    }
+  ],
+  "schemes": [
+    "https",
+    "http"
+  ],
+  "paths": {
+    "/list": {
+      "get": {
+        "tags": [
+          "Items"
+        ],
+        "summary": "List all items",
+        "description": "",
+        "operationId": "List",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/List"
+              }
+            }
+          },
+          "500": {
+            "description": "An internal error"
+          }
+        }
+      }
+    },
+    "/claim": {
+      "post": {
+        "tags": [
+          "Items"
+        ],
+        "summary": "Mark an item as claimed",
+        "description": "If an email address is provided, the return code can be 200 and the return value can contain an error stating the it was unable to send the mail.",
+        "operationId": "Claim",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "Claim",
+            "schema": {
+              "type": "object",
+              "required": [
+                "id"
+              ],
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "description": "The ID of the item to claim"
+                },
+                "mail": {
+                  "type": "string",
+                  "format": "email"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string"
+                },
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Something went wrong with claiming this item"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "List": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "price": {
+          "type": "integer",
+          "format": "int32",
+          "description": "price in cents"
+        },
+        "claimed": {
+          "type": "boolean",
+          "description": "Wether the item has been claimed by someone"
+        },
+        "claimable": {
+          "type": "boolean",
+          "description": "Wether the item can be claimed by someone"
+        },
+        "url": {
+          "type": "string"
+        },
+        "image": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
