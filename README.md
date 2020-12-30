@@ -9,10 +9,23 @@ To run in production just get the binary from the last release and run it. You c
 | WISH_DEBUG | Set this to "1" to create a test user if the database does not yet exist. The user will have the username "test2" and the password "test". |
 | WISH_MAILGUN_DOMAIN | The mailgun domain to use for sending 'unclaim' mails. |
 | WISH_MAILGUN_KEY | The mailgun key to use. |
-| WISH_URL | The domain to use in the 'unclaim' mail. Do not unclude https:// (eg. example.com). "/unclaim/[secret-key]" will be appended, you need to make sure something exists there. |
-| WISH_NAME | The name of the site, to be used in the 'unclaim' mail.| 
+| WISH_MAIL_FROM | The from mail address (eg. "My wishlist <my@wishlist.com>") |
+| WISH_MAIL_SUBJECT | The subject of the mail that users can get after claiming an item. |
+| WISH_MAIL_BODY | The body of the mail that users can get after claiming an item. |
+
+For both the body and the subject a templating language can be used to make the content use some variables. See here for more info on the template language: https://golang.org/pkg/text/template/ .
+The variables that are avalable are these:
+- ItemName string
+- ItemID   int
+- Key      string
+- Mail     string
 
 ## TODO
  - Document API
- - Make mail text and subject overwritable
  - Build frontend
+
+ 		domain := os.Getenv("WISH_MAILGUN_DOMAIN")
+		key := os.Getenv("WISH_MAILGUN_KEY")
+		from := os.Getenv("WISH_MAIL_FROM")
+		subjectTemplate := os.Getenv("WISH_MAIL_SUBJECT")
+		bodyTemplate := os.Getenv("WISH_MAIL_BODY")

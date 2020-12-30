@@ -1,10 +1,12 @@
 package pages
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"net/http"
 	"os"
+	"text/template"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -28,8 +30,9 @@ func Claim(c *gin.Context) {
 	if len(json.Mail) > 0 {
 		domain := os.Getenv("WISH_MAILGUN_DOMAIN")
 		key := os.Getenv("WISH_MAILGUN_KEY")
-		url := os.Getenv("WISH_URL")
-		siteName := os.Getenv("WISH_NAME")
+		from := os.Getenv("WISH_MAIL_FROM")
+		subjectTemplate := os.Getenv("WISH_MAIL_SUBJECT")
+		bodyTemplate := os.Getenv("WISH_MAIL_BODY")
 
 		item, err := utils.FetchItem(json.ID)
 		if err != nil {
@@ -43,14 +46,34 @@ func Claim(c *gin.Context) {
 			return
 		}
 
+		data := struct {
+			ItemName string
+			ItemID   int
+			Key      string
+			Mail     string
+		}{
+			ItemName: item.Name,
+			ItemID:   item.ID,
+			Key:      claimKey,
+			Mail:     json.Mail,
+		}
+
 		mg := mailgun.NewMailgun(domain, key)
-		from := fmt.Sprintf("%s <mail@%s>", siteName, url)
-		subject := fmt.Sprintf("Cadeau afgestreept %s", siteName)
-		body := fmt.Sprintf(`Hallo,
-	Je hebt op %s %s afgestreept. Hierbij de link om dit
-	ongedaan te maken mocht het toch niet zijn gelukt:
-	https://%s/unclaim/%s`, siteName, item.Name, siteName, claimKey)
-		message := mg.NewMessage(from, subject, body, json.Mail)
+		var body bytes.Buffer
+		bodyTmpl := template.Must(template.New("body").Parse(bodyTemplate))
+		err = bodyTmpl.Execute(&body, data)
+		if err != nil {
+			c.JSON(200, gin.H{"status": "Item claimed", "error": fmt.Sprintf("Unable to send mail %s", err.Error())})
+			return
+		}
+		var subject bytes.Buffer
+		subjectTmpl := template.Must(template.New("subject").Parse(subjectTemplate))
+		err = subjectTmpl.Execute(&subject, data)
+		if err != nil {
+			c.JSON(200, gin.H{"status": "Item claimed", "error": fmt.Sprintf("Unable to send mail %s", err.Error())})
+			return
+		}
+		message := mg.NewMessage(from, subject.String(), body.String(), json.Mail)
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 		defer cancel()
 
