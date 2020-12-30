@@ -196,11 +196,37 @@ func EditItem(id int, item WishlistItem) error {
 	}
 	defer db.Close()
 
-	stmt, err := db.Prepare("UPDATE items SET name=?, price=? WHERE rowid=?;")
+	stmt, err := db.Prepare("UPDATE items SET name=?, price=?, claimable=?, claimed=?, url=?, image=? WHERE rowid=?;")
 	if err != nil {
 		return fmt.Errorf("Unable to update record %v", err)
 	}
-	_, err = stmt.Exec(item.Name, item.Price, id)
+	_, err = stmt.Exec(
+		item.Name,
+		item.Price,
+		item.Claimable,
+		item.Claimed,
+		item.URL,
+		item.Image,
+		id)
+	if err != nil {
+		return fmt.Errorf("Unable to update record %v", err)
+	}
+	return nil
+}
+
+// DeleteItem removes an existing item in the wishlist
+func DeleteItem(id int, item WishlistItem) error {
+	db, err := openDB()
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	stmt, err := db.Prepare("DELETE FROM items WHERE rowid=?;")
+	if err != nil {
+		return fmt.Errorf("Unable to update record %v", err)
+	}
+	_, err = stmt.Exec(id)
 	if err != nil {
 		return fmt.Errorf("Unable to update record %v", err)
 	}
