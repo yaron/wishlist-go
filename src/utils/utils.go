@@ -51,7 +51,7 @@ func GetHmac() ([]byte, error) {
 }
 
 // TestToken can be used to test if a token is valid and get the userID from it
-func TestToken(t string) (string, error) {
+func TestToken(t string) (int, error) {
 	token, err := jwt.Parse(t, func(token *jwt.Token) (interface{}, error) {
 		// Don't forget to validate the alg is what you expect:
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -65,12 +65,12 @@ func TestToken(t string) (string, error) {
 	})
 
 	if err != nil {
-		return "", err
+		return 0, err
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		return claims["userID"].(string), nil
+		return int(claims["userID"].(float64)), nil
 	}
 
-	return "", fmt.Errorf("Unable to parse JWT")
+	return 0, fmt.Errorf("Unable to parse JWT")
 }

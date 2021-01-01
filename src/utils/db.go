@@ -152,11 +152,11 @@ func AddItem(item WishlistItem) error {
 	}
 	defer db.Close()
 
-	stmt, err := db.Prepare("INSERT INTO items (name, price) VALUES (?, ?);")
+	stmt, err := db.Prepare("INSERT INTO items (name, price, claimable, url, image) VALUES (?, ?, ?, ?, ?);")
 	if err != nil {
 		return fmt.Errorf("Unable to create record %v", err)
 	}
-	_, err = stmt.Exec(item.Name, item.Price)
+	_, err = stmt.Exec(item.Name, item.Price, item.Claimable, item.URL, item.Image)
 	if err != nil {
 		return fmt.Errorf("Unable to create record %v", err)
 	}
