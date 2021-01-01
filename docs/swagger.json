@@ -49,7 +49,7 @@
             "schema": {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/List"
+                "$ref": "#/definitions/WishlistItem"
               }
             }
           },
@@ -115,76 +115,178 @@
           }
         }
       }
-    }
-  },
-  "/unclaim": {
-    "post": {
-      "tags": [
-        "Items"
-      ],
-      "summary": "Mark an item as unclaimed",
-      "operationId": "Unclaim",
-      "consumes": [
-        "application/json"
-      ],
-      "produces": [
-        "application/json"
-      ],
-      "parameters": [
-        {
-          "in": "body",
-          "name": "Unclaim",
-          "schema": {
-            "type": "object",
-            "required": [
-              "id",
-              "key"
-            ],
-            "properties": {
-              "id": {
-                "type": "integer",
-                "description": "The ID of the item to unclaim"
-              },
-              "key": {
-                "type": "string",
-                "description": "The secret that was mailed to the user"
+    },
+    "/unclaim": {
+      "post": {
+        "tags": [
+          "Items"
+        ],
+        "summary": "Mark an item as unclaimed",
+        "operationId": "Unclaim",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "Unclaim",
+            "schema": {
+              "type": "object",
+              "required": [
+                "id",
+                "key"
+              ],
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "description": "The ID of the item to unclaim"
+                },
+                "key": {
+                  "type": "string",
+                  "description": "The secret that was mailed to the user"
+                }
               }
             }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Something went wrong with unclaiming this item"
           }
         }
-      ],
-      "responses": {
-        "200": {
-          "description": "successful operation",
-          "schema": {
-            "type": "object",
-            "properties": {
-              "status": {
-                "type": "string"
+      }
+    },
+    "/login": {
+      "post": {
+        "tags": [
+          "Authorisation"
+        ],
+        "summary": "Get a token to run privileged operations",
+        "operationId": "Login",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "Unclaim",
+            "schema": {
+              "type": "object",
+              "required": [
+                "user",
+                "password"
+              ],
+              "properties": {
+                "user": {
+                  "type": "string"
+                },
+                "password": {
+                  "type": "string"
+                }
               }
             }
           }
-        },
-        "400": {
-          "description": "Something went wrong with unclaiming this item"
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string"
+                },
+                "token": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Something went wrong with logging in (other that wrong username/password)"
+          },
+          "401": {
+            "description": "Wrong username or password"
+          }
+        }
+      }
+    },
+    "/admin/add": {
+      "post": {
+        "tags": [
+          "Privileged"
+        ],
+        "summary": "Create a new wishlist item",
+        "operationId": "Add",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "Add",
+            "schema": {
+              "$ref": "#/definitions/WishlistItem"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Something went wrong with unclaiming this item"
+          }
         }
       }
     }
   },
   "definitions": {
-    "List": {
+    "WishlistItem": {
+      "description": "An item on a whishlist",
       "type": "object",
       "properties": {
         "id": {
-          "type": "integer",
-          "format": "int64"
+          "type": "integer"
         },
         "name": {
           "type": "string"
         },
         "price": {
           "type": "integer",
-          "format": "int32",
           "description": "price in cents"
         },
         "claimed": {
@@ -202,6 +304,14 @@
           "type": "string"
         }
       }
+    }
+  },
+  "securityDefinitions": {
+    "APIKeyHeader": {
+      "description": "Start the header with \"Bearer\" followed by the token returned by the login operation",
+      "type": "apiKey",
+      "in": "header",
+      "name": "Authorization"
     }
   }
 }
