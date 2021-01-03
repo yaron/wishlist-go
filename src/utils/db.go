@@ -215,7 +215,7 @@ func EditItem(id int, item WishlistItem) error {
 }
 
 // DeleteItem removes an existing item in the wishlist
-func DeleteItem(id int, item WishlistItem) error {
+func DeleteItem(id int) error {
 	db, err := openDB()
 	if err != nil {
 		return err
