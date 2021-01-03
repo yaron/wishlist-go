@@ -1,7 +1,8 @@
 # Wishlist in GO
 This wishlist is a simple go based wishlist backend that can be used to create a webapplication to host your wishlist. This only includes a backend which can be contacted through it's API.
 
-Documentation of the API can be found on https://yaron.github.io/wishlist-go/ . This is still very incomplete.
+Documentation of the API can be found on https://yaron.github.io/wishlist-go/ .
+I'll be building a frontend here: https://github.com/yaron/wishlist-front .
 
 ## Usage
 To run in production just get the binary from the last release and run it. You can use these environment variables to change the way it works a bit.
@@ -21,7 +22,3 @@ The variables that are avalable are these:
 - ItemID   int
 - Key      string
 - Mail     string
-
-## TODO
- - Document API
- - Build frontend
