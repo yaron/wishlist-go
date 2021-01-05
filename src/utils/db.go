@@ -107,7 +107,7 @@ func FetchItems() ([]WishlistItem, error) {
 	}
 	defer db.Close()
 
-	sqlStmt := "select rowid, name, price, claimable, claimed, url, image from items;"
+	sqlStmt := "select rowid, name, price, claimable, claimed, url, image from items ORDER BY claimed ASC, name ASC;"
 	rows, err := db.Query(sqlStmt)
 	if err != nil {
 		return itemList, fmt.Errorf("Unable to query %v", err)

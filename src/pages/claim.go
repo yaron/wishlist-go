@@ -21,7 +21,13 @@ func Claim(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	err := utils.ClaimItem(json)
+	item, err := utils.FetchItem(json.ID)
+	if !item.Claimable {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Item is not claimable"})
+		return
+	}
+
+	err = utils.ClaimItem(json)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -34,7 +40,6 @@ func Claim(c *gin.Context) {
 		subjectTemplate := os.Getenv("WISH_MAIL_SUBJECT")
 		bodyTemplate := os.Getenv("WISH_MAIL_BODY")
 
-		item, err := utils.FetchItem(json.ID)
 		if err != nil {
 			c.JSON(200, gin.H{"status": "Item claimed", "error": fmt.Sprintf("Unable to send mail %s", err.Error())})
 			return
