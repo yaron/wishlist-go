@@ -69,6 +69,9 @@ func TestToken(t string) (int, error) {
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		if _, ok := claims["exp"]; !ok {
+			return 0, fmt.Errorf("Old tokens without expiration are no longer valid")
+		}
 		return int(claims["userID"].(float64)), nil
 	}
 

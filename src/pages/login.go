@@ -28,7 +28,8 @@ func Login(c *gin.Context) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"userID": user.ID,
-		"nbf":    time.Date(2015, 10, 10, 12, 0, 0, 0, time.UTC).Unix(),
+		"nbf":    time.Now().Unix(),
+		"exp":    time.Now().Unix() + 60*60*24, // Expire after 24 hours.
 	})
 
 	hmac, err := utils.GetHmac()
