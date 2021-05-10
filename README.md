@@ -12,6 +12,7 @@ To run in production just get the binary from the last release and run it. You c
 | WISH_DEBUG | Set this to "1" to create a test user if the database does not yet exist. The user will have the username "test2" and the password "test". |
 | WISH_MAILGUN_DOMAIN | The mailgun domain to use for sending 'unclaim' mails. |
 | WISH_MAILGUN_KEY | The mailgun key to use. |
+| WISH_MAILGUN_EU | Wether to use the EU region of mailgun. |
 | WISH_MAIL_FROM | The from mail address (eg. "My wishlist \<my@wishlist.com>") |
 | WISH_MAIL_SUBJECT | The subject of the mail that users can get after claiming an item. |
 | WISH_MAIL_BODY | The body of the mail that users can get after claiming an item. |

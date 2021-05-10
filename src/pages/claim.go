@@ -36,6 +36,7 @@ func Claim(c *gin.Context) {
 	if len(json.Mail) > 0 {
 		domain := os.Getenv("WISH_MAILGUN_DOMAIN")
 		key := os.Getenv("WISH_MAILGUN_KEY")
+		eu := os.Getenv("WISH_MAILGUN_EU")
 		from := os.Getenv("WISH_MAIL_FROM")
 		subjectTemplate := os.Getenv("WISH_MAIL_SUBJECT")
 		bodyTemplate := os.Getenv("WISH_MAIL_BODY")
@@ -64,6 +65,9 @@ func Claim(c *gin.Context) {
 		}
 
 		mg := mailgun.NewMailgun(domain, key)
+		if eu == "1" {
+			mg.SetAPIBase(mailgun.APIBaseEU)
+		}
 		var body bytes.Buffer
 		bodyTmpl := template.Must(template.New("body").Parse(bodyTemplate))
 		err = bodyTmpl.Execute(&body, data)
