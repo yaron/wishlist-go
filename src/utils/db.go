@@ -273,11 +273,11 @@ func ClaimItem(claim Claim) error {
 
 	stmt, err := db.Prepare("UPDATE items SET claimed=true WHERE rowid=? and claimable=1;")
 	if err != nil {
-		return fmt.Errorf("Unable to update record %v", err)
+		return fmt.Errorf("unable to update record %v", err)
 	}
 	_, err = stmt.Exec(claim.ID)
 	if err != nil {
-		return fmt.Errorf("Unable to update record %v", err)
+		return fmt.Errorf("unable to update record %v", err)
 	}
 	return nil
 }
@@ -292,31 +292,31 @@ func UnclaimItem(claim Unclaim) error {
 
 	stmt, err := db.Prepare("SELECT itemID from claims WHERE key=? AND itemID=? LIMIT 1;")
 	if err != nil {
-		return fmt.Errorf("Unable to query %v", err)
+		return fmt.Errorf("unable to query %v", err)
 	}
 
 	var itemID string
 	err = stmt.QueryRow(claim.Key, claim.ID).Scan(&itemID)
 	if err != nil {
-		return fmt.Errorf("No claim found that matches the id and key")
+		return fmt.Errorf("no claim found that matches the id and key")
 	}
 
 	stmt, err = db.Prepare("UPDATE items SET claimed=false WHERE rowid=? and claimable=1;")
 	if err != nil {
-		return fmt.Errorf("Unable to update item %v", err)
+		return fmt.Errorf("unable to update item %v", err)
 	}
 	_, err = stmt.Exec(claim.ID)
 	if err != nil {
-		return fmt.Errorf("Unable to update item %v", err)
+		return fmt.Errorf("unable to update item %v", err)
 	}
 
-	stmt, err = db.Prepare("DELETE from claims WHERE key=? AND itemID=? LIMIT 1;")
+	stmt, err = db.Prepare("DELETE from claims WHERE key=? AND itemID=?;")
 	if err != nil {
-		return fmt.Errorf("Unable to delete claim %v", err)
+		return fmt.Errorf("unable to delete claim %v", err)
 	}
 	_, err = stmt.Exec(claim.Key, claim.ID)
 	if err != nil {
-		return fmt.Errorf("Unable to delete claim %v", err)
+		return fmt.Errorf("unable to delete claim %v", err)
 	}
 
 	return nil
