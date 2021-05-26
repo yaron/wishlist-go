@@ -1,67 +1,72 @@
 package utils
 
 import (
-	"crypto/hmac"
 	"crypto/rand"
-	"crypto/sha256"
-	"encoding/base64"
-	"encoding/hex"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 )
 
-func hmacFile() string {
-	return path.Join(os.Getenv("WISH_PATH"), "hmac")
+func rsaFile() string {
+	return path.Join(os.Getenv("WISH_PATH"), "rsa.pem")
 }
 
-// GetHmac gets the Hmac from file or generates a new one and writes it to file
-func GetHmac() ([]byte, error) {
+// GetRsa gets the rsa pem from file or generates a new one and writes it to file
+func GetRsa() ([]byte, error) {
 	var r []byte
-	if _, err := os.Stat(hmacFile()); os.IsNotExist(err) {
-		randomBytes := make([]byte, 16)
-		_, err := rand.Read(randomBytes)
+	if _, err := os.Stat(rsaFile()); os.IsNotExist(err) {
+		privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 		if err != nil {
 			return r, err
 		}
-		secret := base64.URLEncoding.EncodeToString(randomBytes)
-		randomBytes = make([]byte, 64)
-		_, err = rand.Read(randomBytes)
-		if err != nil {
-			return r, err
+		var r []byte = x509.MarshalPKCS1PrivateKey(privateKey)
+		privateKeyBlock := &pem.Block{
+			Type:  "RSA PRIVATE KEY",
+			Bytes: r,
 		}
-		data := base64.URLEncoding.EncodeToString(randomBytes)
-		h := hmac.New(sha256.New, []byte(secret))
-		h.Write([]byte(data))
-		sha := []byte(hex.EncodeToString(h.Sum(nil)))
-		err = ioutil.WriteFile(hmacFile(), sha, 0600)
+
+		privatePem, err := os.Create("rsa.pem")
 		if err != nil {
-			return r, err
+			fmt.Printf("error when creating rsa.pem: %s \n", err)
+			os.Exit(1)
 		}
-		return sha, nil
+		err = pem.Encode(privatePem, privateKeyBlock)
+		if err != nil {
+			fmt.Printf("error when encoding rsa.pem: %s \n", err)
+			os.Exit(1)
+		}
+		return r, nil
 	}
-	data, err := ioutil.ReadFile(hmacFile())
+	r, err := ioutil.ReadFile(rsaFile())
 	if err != nil {
 		return r, err
 	}
-	return data, nil
+	return r, nil
 }
 
 // TestToken can be used to test if a token is valid and get the userID from it
 func TestToken(t string) (int, error) {
 	token, err := jwt.Parse(t, func(token *jwt.Token) (interface{}, error) {
 		// Don't forget to validate the alg is what you expect:
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 		}
-		hmac, err := GetHmac()
+		pem, err := GetRsa()
 		if err != nil {
 			return nil, err
 		}
-		return hmac, nil
+		privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(pem)
+		if err != nil {
+			return nil, err
+		}
+
+		return &privateKey.PublicKey, nil
 	})
 
 	if err != nil {

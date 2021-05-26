@@ -12,8 +12,9 @@
 # Test databases
 wishlist.db
 
-# HMAC file
+# Secret files file
 hmac
+rsa.pem
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
