@@ -22,6 +22,11 @@ func Claim(c *gin.Context) {
 		return
 	}
 	item, err := utils.FetchItem(json.ID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	if !item.Claimable {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Item is not claimable"})
 		return
