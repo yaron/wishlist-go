@@ -1,8 +1,6 @@
 package pages
 
 import (
-	"crypto/x509"
-	"encoding/pem"
 	"log"
 	"net/http"
 	"time"
@@ -71,8 +69,5 @@ func JwtKey(c *gin.Context) {
 		return
 	}
 
-	publickeyBytes := x509.MarshalPKCS1PublicKey(&privateKey.PublicKey)
-	pemPubKey := string(pem.EncodeToMemory(&pem.Block{Type: "RSA PUBLIC KEY", Bytes: publickeyBytes}))
-
-	c.JSON(http.StatusOK, gin.H{"key": pemPubKey})
+	c.JSON(http.StatusOK, gin.H{"key": &privateKey.PublicKey})
 }
