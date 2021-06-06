@@ -31,7 +31,7 @@ func GetRsa() ([]byte, error) {
 			Bytes: r,
 		}
 
-		privatePem, err := os.Create("rsa.pem")
+		privatePem, err := os.Create(rsaFile())
 		if err != nil {
 			fmt.Printf("error when creating rsa.pem: %s \n", err)
 			os.Exit(1)
