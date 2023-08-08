@@ -10,7 +10,7 @@ import (
 	"os"
 	"path"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 func rsaFile() string {
